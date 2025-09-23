@@ -1,3 +1,6 @@
+import dotenv from "dotenv";
+dotenv.config();
+
 import express from "express";
 import cors from "cors";
 import { MongoClient } from "mongodb";
@@ -32,7 +35,7 @@ app.use(cors());
 app.use(express.json());
 app.use(limiter);
 
-const mongoUrl = "mongodb://localhost:27017/";
+const mongoUrl = process.env.MONGODB_URL || "mongodb://localhost:27017/";
 
 const usersDbName = "usersdb";
 const formsDbName = "userformsdb";
@@ -107,5 +110,5 @@ app.post("/api/userform", authenticateToken, async (req: any, res: any) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`✅ Server running on http://localhost:${PORT}`);
+  console.log(`✅ Server running on port ${PORT}`);
 });
