@@ -107,7 +107,7 @@ npm run dev
 
 ## 🌐 Usage
 
-- Visit `http://localhost:5173` in your browser.
+- Visit `http://18.218.89.6:5173` in your browser.
 - Sign up as a new user, then sign in.
 - Fill out the survey form and review your answers after submission.
 - All API requests are protected by JWT and rate limiting.

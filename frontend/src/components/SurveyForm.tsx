@@ -105,7 +105,7 @@ const SurveyForm: React.FC<SurveyFormProps> = ({ userEmail, jwtToken }) => {
     setSubmitting(true);
     setSubmitError("");
     try {
-      const res = await fetch("http://localhost:3000/api/userform", {
+      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/userform`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

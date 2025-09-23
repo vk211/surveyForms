@@ -17,7 +17,7 @@ const Signin: React.FC<{ onSignin: (email: string, password: string, token: stri
     }
     setError("");
     try {
-      const res = await fetch("http://localhost:3000/api/signin", {
+      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/signin`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
