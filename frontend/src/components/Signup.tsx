@@ -21,20 +21,29 @@ const Signup: React.FC<{ onSignup: (email: string, password: string) => void }> 
     }
     setError("");
     try {
+      console.log('Backend URL:', import.meta.env.VITE_BACKEND_URL);
+      console.log('Making request to:', `${import.meta.env.VITE_BACKEND_URL}/api/signup`);
+      
       const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/signup`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       });
+      
+      console.log('Response status:', res.status);
+      console.log('Response:', res);
+      
       if (res.status === 201) {
         setSuccess("Signup successful! You can now sign in.");
         onSignup(email, password);
       } else {
         const data = await res.json();
+        console.log('Error response data:', data);
         setError(data.message || "Signup failed");
       }
     } catch (err) {
-      setError("Signup failed. Please try again.");
+      console.error('Signup error:', err);
+      setError(`Network error: ${err instanceof Error ? err.message : 'Unknown error'}`);
     }
   };
 

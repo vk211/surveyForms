@@ -31,7 +31,14 @@ function authenticateToken(req: any, res: any, next: any) {
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.use(cors());
+// Configure CORS to allow all origins for debugging
+const corsOptions = {
+  origin: true,
+  credentials: true,
+  optionsSuccessStatus: 200
+};
+
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(limiter);
 
@@ -43,10 +50,41 @@ let usersDb: any;
 let formsDb: any;
 
 MongoClient.connect(mongoUrl)
-  .then((client) => {
+  .then(async (client) => {
     usersDb = client.db(usersDbName);
     formsDb = client.db(formsDbName);
-    console.log("✅ Connected to MongoDB (usersdb, userformsdb)");
+    
+    console.log("✅ Connected to MongoDB");
+    
+    // List all databases to see what exists
+    const adminDb = client.db().admin();
+    const dbList = await adminDb.listDatabases();
+    console.log("📄 Available databases:", dbList.databases.map(db => db.name));
+    
+    // Ensure collections exist by creating them if they don't
+    try {
+      const usersCollections = await usersDb.listCollections().toArray();
+      console.log("👥 Collections in usersdb:", usersCollections.map((col: any) => col.name));
+      
+      const formsCollections = await formsDb.listCollections().toArray();
+      console.log("📋 Collections in userformsdb:", formsCollections.map((col: any) => col.name));
+      
+      // Create collections if they don't exist
+      if (!usersCollections.find((col: any) => col.name === 'users')) {
+        await usersDb.createCollection('users');
+        console.log("✨ Created 'users' collection");
+      }
+      
+      if (!formsCollections.find((col: any) => col.name === 'userforms')) {
+        await formsDb.createCollection('userforms');
+        console.log("✨ Created 'userforms' collection");
+      }
+      
+    } catch (collectionError) {
+      console.error("⚠️ Error checking/creating collections:", collectionError);
+    }
+    
+    console.log("✅ Database setup complete (usersdb, userformsdb)");
   })
   .catch((err) => {
     console.error("❌ MongoDB connection error:", err);
@@ -59,7 +97,7 @@ app.get("/", (_req, res) => {
 // Handle survey response submissions
 
 // User signup
-app.post("/api/signup", async (req, res) => {
+app.post("/api/signup", async (req, res): Promise<any> => {
   try {
     if (!usersDb) return res.status(500).json({ message: "Database not connected" });
     const { email, password } = req.body;
@@ -70,12 +108,12 @@ app.post("/api/signup", async (req, res) => {
     await usersDb.collection("users").insertOne({ email, password: hashedPassword });
     res.status(201).json({ message: "User created" });
   } catch (err) {
-    res.status(500).json({ message: "Signup failed" });
+    return res.status(500).json({ message: "Signup failed" });
   }
 });
 
 // User signin
-app.post("/api/signin", async (req, res) => {
+app.post("/api/signin", async (req, res): Promise<any> => {
   try {
     if (!usersDb) return res.status(500).json({ message: "Database not connected" });
     const { email, password } = req.body;
@@ -88,7 +126,7 @@ app.post("/api/signin", async (req, res) => {
     const token = jwt.sign({ email }, JWT_SECRET, { expiresIn: "2h" });
     res.status(200).json({ message: "Signin successful", token });
   } catch (err) {
-    res.status(500).json({ message: "Signin failed" });
+    return res.status(500).json({ message: "Signin failed" });
   }
 });
 

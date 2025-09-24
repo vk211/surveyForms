@@ -17,22 +17,32 @@ const Signin: React.FC<{ onSignin: (email: string, password: string, token: stri
     }
     setError("");
     try {
+      console.log('Backend URL:', import.meta.env.VITE_BACKEND_URL);
+      console.log('Making signin request to:', `${import.meta.env.VITE_BACKEND_URL}/api/signin`);
+      
       const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/signin`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       });
+      
+      console.log('Signin response status:', res.status);
+      console.log('Signin response:', res);
+      
       if (res.ok) {
         const data = await res.json();
+        console.log('Signin success data:', data);
         setSuccess("Signin successful!");
         onSignin(email, password, data.token);
         navigate("/survey");
       } else {
         const data = await res.json();
+        console.log('Signin error response data:', data);
         setError(data.message || "Signin failed");
       }
     } catch (err) {
-      setError("Signin failed. Please try again.");
+      console.error('Signin error:', err);
+      setError(`Network error: ${err instanceof Error ? err.message : 'Unknown error'}`);
     }
   };
 
